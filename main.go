@@ -79,7 +79,7 @@ func main() {
 		args = []string{"go", "install"}
 	}
 
-	var teardown chan bool
+	var teardown chan struct{}
 
 	for e := range w.Event {
 		if filepath.Dir(e.Name) == filepath.Base(e.Name) {
@@ -138,14 +138,14 @@ func start(args []string) (chan struct{}, chan struct{}) {
 	return teardown, finished
 }
 
-func invoke(args []string) chan bool {
+func invoke(args []string) chan struct{} {
 	//args = append([]string{"-c", "eval \"$@\"", "--"}, args...)
 	//p := exec.Command("bash", args...)
 	p := exec.Command(args[0], args[1:]...)
 	p.Stdout = os.Stdout
 	p.Stderr = os.Stderr
 
-	teardown := make(chan bool)
+	teardown := make(chan struct{})
 
 	go func() {
 		// Wait 10ms in case another request comes in
