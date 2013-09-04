@@ -155,7 +155,10 @@ func invoke(args []string) chan bool {
 		case <-time.After(10 * time.Millisecond):
 		}
 
+		exited := make(chan struct{})
 		go func() {
+			defer close(exited)
+
 			log.Println("Starting ..")
 			err := p.Start()
 			if err != nil {
@@ -163,16 +166,14 @@ func invoke(args []string) chan bool {
 			}
 			_ = p.Wait() // Don't care about exit status
 			log.Println(".. Finished")
-			teardown <- true
 		}()
 
-		// Wait for process to finish or another start signal to come in
-		finished := <-teardown
-
-		if !finished {
+		// Wait for process to finish or another start signal to come i
+		select {
+		case <-teardown:
 			log.Println("! Another request came in, killing !")
-			teardown = nil
 			_ = p.Process.Kill()
+		case <-exited:
 		}
 	}()
 
