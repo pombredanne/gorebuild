@@ -81,10 +81,14 @@ func main() {
 
 	var teardown chan struct{}
 
+	base := filepath.Base
+	dir := filepath.Dir
+
 	for e := range w.Event {
-		if filepath.Dir(e.Name) == filepath.Base(e.Name) {
+		p, _ := filepath.Abs(e.Name)
+		if base(dir(p)) == base(p) && false {
 			// Special case to avoid changes to built go binary triggering its
-			// own rebuild
+			// own rebuild (filename == name of dir enclosing it)
 			continue
 		}
 		if teardown != nil {
